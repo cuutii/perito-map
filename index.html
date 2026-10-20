@@ -26,6 +26,17 @@
     📴 Sin conexión — mostrando la última información guardada.
   </div>
 
+  <!-- Aviso para quien entre con JavaScript deshabilitado: sin él, la app
+       no puede dibujar el mapa ni el recorrido, y quedaría todo en blanco.
+       <noscript> se muestra SOLO si el navegador no ejecuta JavaScript. -->
+  <noscript>
+    <div style="background:#7f1d1d; color:#fecaca; text-align:center;
+                padding:1rem; font-family:system-ui, sans-serif;">
+      ⚠️ Esta app necesita JavaScript para funcionar. Activalo en tu navegador
+      y volvé a cargar la página.
+    </div>
+  </noscript>
+
   <!-- SECCIÓN: cabecera -->
   <header class="cabecera">
     <div class="cabecera-titulo">
@@ -279,7 +290,11 @@
           <button class="quitar" type="button" aria-label="Quitar ${g.nombre} del recorrido">✕</button>
         `;
 
-        li.querySelector(".quitar").addEventListener("click", () => quitarDelRecorrido(id));
+        // Guardia: si el botón no existiera, evitamos un error que rompería la lista entera.
+        const botonQuitar = li.querySelector(".quitar");
+        if (botonQuitar) {
+          botonQuitar.addEventListener("click", () => quitarDelRecorrido(id));
+        }
         lista.appendChild(li);
       });
 
@@ -372,17 +387,25 @@
       51: ["🌦️", "Llovizna débil"],
       53: ["🌦️", "Llovizna"],
       55: ["🌧️", "Llovizna intensa"],
+      56: ["🌧️❄️", "Llovizna helada"],
+      57: ["🌧️❄️", "Llovizna helada intensa"],
       61: ["🌧️", "Lluvia débil"],
       63: ["🌧️", "Lluvia"],
       65: ["🌧️", "Lluvia intensa"],
+      66: ["🌧️❄️", "Lluvia helada"],
+      67: ["🌧️❄️", "Lluvia helada intensa"],
       71: ["🌨️", "Nieve débil"],
       73: ["🌨️", "Nieve"],
       75: ["❄️", "Nieve intensa"],
+      77: ["🌨️", "Granos de nieve"],
       80: ["🌦️", "Chubascos"],
       81: ["🌧️", "Chubascos fuertes"],
       82: ["⛈️", "Chubascos violentos"],
+      85: ["🌨️", "Chubascos de nieve"],
+      86: ["🌨️", "Chubascos de nieve fuertes"],
       95: ["⛈️", "Tormenta"],
-      96: ["⛈️", "Tormenta con granizo"]
+      96: ["⛈️", "Tormenta con granizo leve"],
+      99: ["⛈️🧊", "Tormenta con granizo fuerte"]
     };
 
     const cajaClima = document.getElementById("clima");
@@ -423,8 +446,35 @@
     }
 
     actualizarClima();
-    // Cada 15 minutos pedimos el clima de nuevo (si hay internet).
-    setInterval(actualizarClima, 15 * 60 * 1000);
+
+    // Cada 15 minutos pedimos el clima de nuevo, pero SOLO mientras la app
+    // está a la vista. Si la pestaña queda oculta, paramos el temporizador
+    // para no gastar batería ni datos móviles en vano.
+    const INTERVALO_CLIMA = 15 * 60 * 1000;
+    let temporizadorClima = null;
+
+    function arrancarTemporizadorClima() {
+      if (temporizadorClima !== null) return; // ya estaba corriendo: no lo duplicamos
+      temporizadorClima = setInterval(actualizarClima, INTERVALO_CLIMA);
+    }
+
+    function pararTemporizadorClima() {
+      if (temporizadorClima === null) return; // ya estaba detenido
+      clearInterval(temporizadorClima);
+      temporizadorClima = null;
+    }
+
+    // "visibilitychange" avisa cuando la pestaña pasa a estar oculta o visible.
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        pararTemporizadorClima();
+      } else {
+        actualizarClima(); // al volver, refrescamos de una vez por si pasó tiempo
+        arrancarTemporizadorClima();
+      }
+    });
+
+    arrancarTemporizadorClima();
 
     // ---------------------------------------------------------------
     // 8) ESTADO DE CONEXIÓN: avisos de "sin internet".

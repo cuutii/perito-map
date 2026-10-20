@@ -17,7 +17,7 @@
 
 // Nombre de la caché. Si cambiamos la versión (V2, V3...), el navegador
 // descarga todo de nuevo y borra lo viejo.
-const CACHE_V1 = "perito-map-v2";
+const CACHE_V1 = "perito-map-v3";
 
 // Archivos que queremos que funcionen sin internet.
 // Ojo: los paths son relativos a sw.js (que vive en la raíz del proyecto).
@@ -46,10 +46,15 @@ const ARCHIVOS = [
    1) INSTALACIÓN: guardamos todos los archivos listados arriba.
    ------------------------------------------------------------ */
 self.addEventListener("install", evento => {
+  // skipWaiting le dice al navegador: "no esperes a cerrar las pestañas
+  // viejas, tomá el control ahora". Sin esto, el modo sin internet recién
+  // funciona a partir de la SEGUNDA visita.
+  self.skipWaiting();
+
   // waitUntil hace que el navegador espere a que termine de guardar todo
   evento.waitUntil(
     caches.open(CACHE_V1)
-      .then(cachae => cachae.addAll(ARCHIVOS))
+      .then(cache => cache.addAll(ARCHIVOS))
       // Si algo falla (por ejemplo, una foto), la instalación no se rompe:
       // seguimos igual y ese archivo simplemente no quedará disponible offline.
       .catch(error => console.warn("No se pudo precachear todo:", error))
@@ -85,12 +90,12 @@ self.addEventListener("fetch", evento => {
   // alguna vez, la damos de la caché sin gastar datos; si no, vamos a internet.
   if (url.hostname.endsWith("tile.openstreetmap.org")) {
     evento.respondWith(
-      caches.open("perito-map-tiles").then(cachae =>
-        cachae.match(evento.request).then(guardada => {
+      caches.open("perito-map-tiles").then(cache =>
+        cache.match(evento.request).then(guardada => {
           const irARed = fetch(evento.request).then(respuesta => {
             // Guardamos solo las respuestas correctas (status 200)
             if (respuesta && respuesta.status === 200) {
-              cachae.put(evento.request, respuesta.clone());
+              cache.put(evento.request, respuesta.clone());
             }
             return respuesta;
           });
@@ -110,10 +115,26 @@ self.addEventListener("fetch", evento => {
       fetch(evento.request)
         .then(respuesta => {
           const copia = respuesta.clone();
-          caches.open("perito-map-clima").then(cachae => cachae.put(evento.request, copia));
+          caches.open("perito-map-clima").then(cache => cache.put(evento.request, copia));
           return respuesta;
         })
-        .catch(() => caches.match(evento.request)) // sin internet → último clima
+        .catch(() =>
+          // Sin internet: devolvemos el último clima guardado. Si tampoco
+          // hay copia, devolvemos una respuesta JSON de error VÁLIDA,
+          // porque respondWith(undefined) haría fallar la petición entera.
+          caches.open("perito-map-clima").then(cache =>
+            cache.match(evento.request).then(guardada =>
+              guardada || new Response(
+                JSON.stringify({ error: "sin-conexion" }),
+                {
+                  status: 503,
+                  statusText: "Sin conexion",
+                  headers: { "Content-Type": "application/json" }
+                }
+              )
+            )
+          )
+        )
     );
     return;
   }
@@ -128,7 +149,7 @@ self.addEventListener("fetch", evento => {
         // Guardamos copia para la próxima vez, pero solo si es válida.
         if (respuesta && respuesta.status === 200 && respuesta.type === "basic") {
           const copia = respuesta.clone();
-          caches.open(CACHE_V1).then(cachae => cachae.put(evento.request, copia));
+          caches.open(CACHE_V1).then(cache => cache.put(evento.request, copia));
         }
         return respuesta;
       });
