@@ -1,7 +1,9 @@
 /* =========================================================
    PERITO MAP — style.css
-   Diseño oscuro con tono azulado, tarjetas redondeadas
-   y adaptado a celular (responsive).
+   Diseño oscuro con tono azulado, pensado PRINCIPALMENTE
+   para celular: botones grandes (para el pulgar), medidas
+   con unidades modernas (dvh = altura dinámica del celu)
+   y respeto por la "banda segura" de los celus con notch.
    ========================================================= */
 
 /* ---------- 1) Variables y base ---------- */
@@ -14,10 +16,20 @@
   --acento: #38bdf8;         /* celeste destacado */
   --peligro: #f87171;        /* rojo para acciones destructivas */
   --radio: 16px;             /* redondeo estándar */
+
+  /* safe-area: el espacio que ocupan el notch de arriba y la barra
+     de gestos de abajo en los celulares modernos. Si no usamos esto,
+     los botones quedan tapados. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 * {
-  box-sizing: border-box; /* el padding no agranda el ancho de los elementos */
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
 }
 
 body {
@@ -27,65 +39,187 @@ body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   min-height: 100vh;
+  min-height: 100dvh; /* dvh = "dynamic viewport height": se adapta cuando el celu muestra/oculta la barra del navegador */
   display: flex;
   flex-direction: column;
+
+  /* Evita el "zoom fantasma" de iOS al tocar dos veces seguido */
+  -webkit-text-size-adjust: 100%;
 }
 
 a {
   color: var(--acento);
 }
 
-/* ---------- 2) Cabecera ---------- */
+/* ---------- 2) Aviso de sin conexión ---------- */
+.aviso-offline {
+  position: sticky;
+  top: 0;
+  z-index: 1100; /* por encima del mapa de Leaflet */
+  background: #7c2d12;
+  color: #fed7aa;
+  text-align: center;
+  padding: 0.55rem 1rem;
+  padding-top: calc(0.55rem + var(--safe-top));
+  font-size: 0.88rem;
+  border-bottom: 1px solid #9a3412;
+}
+
+/* ---------- 3) Cabecera ---------- */
 .cabecera {
-  padding: 1.2rem 1.2rem 0.6rem;
+  padding: calc(0.9rem + var(--safe-top)) 1rem 0.6rem;
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
 }
 
-.cabecera h1 {
+.cabecera-titulo h1 {
   margin: 0;
-  font-size: clamp(1.3rem, 4vw, 2rem);
-  letter-spacing: 0.2px;
+  font-size: clamp(1.25rem, 5vw, 2rem);
+  line-height: 1.15;
 }
 
 .subtitulo {
-  margin: 0.4rem 0 0.9rem;
+  margin: 0.1rem 0 0;
   color: var(--texto-suave);
-  font-size: 0.98rem;
+  font-size: 0.9rem;
+}
+
+/* ---------- 4) Caja de clima ---------- */
+.clima {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--fondo-2);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.88rem;
+  max-width: 100%;
+}
+
+.clima-emoji {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.clima-temp {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.clima-detalle {
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- 5) Zona principal: mapa + panel ---------- */
+.principal {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0.6rem auto 1rem;
+  padding: 0 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 1rem;
+  align-items: start;
+}
+
+.zona-mapa {
+  position: relative; /* necesario para que los botones flotantes se ubiquen sobre el mapa */
+  background: var(--fondo-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 0.45rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+#mapa {
+  height: 70vh;
+  height: 70dvh;
+  min-height: 380px;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--borde);
+}
+
+/* ---------- 6) Botones flotantes sobre el mapa ---------- */
+.mapa-botones {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  z-index: 900; /* Leaflet usa 400-1000; nos ponemos arriba de las baldosas */
+}
+
+.boton-flotante {
+  /* 48px es el mínimo cómodo para tocar con el pulgar (Apple/Google recomiendan 44-48px) */
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--borde);
+  background: rgba(17, 28, 51, 0.94);
+  color: var(--texto);
+  font-size: 1.3rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  transition: transform 0.12s ease, border-color 0.12s ease;
+  /* Sin retardo al tocar (si no, el celu espera a ver si es doble toque) */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.boton-flotante:active {
+  transform: scale(0.92);
+}
+
+.boton-flotante:hover {
+  border-color: var(--acento);
 }
 
 .mensaje-geo {
   min-height: 1.2rem;
-  margin: 0.5rem 0 0;
-  font-size: 0.9rem;
+  margin: 0.5rem 0.2rem 0.1rem;
+  font-size: 0.85rem;
   color: var(--texto-suave);
 }
 
-/* ---------- 3) Botones ---------- */
+/* ---------- 7) Botones generales ---------- */
 .boton {
   border: 1px solid var(--borde);
   background: linear-gradient(180deg, #1c2c4a, #16233d);
   color: var(--texto);
-  padding: 0.6rem 1rem;
+  padding: 0.75rem 1.1rem; /* más alto que en desktop, para tocar cómodo */
   border-radius: 999px;
-  font-size: 0.95rem;
+  font-size: 1rem;
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  min-height: 46px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
 }
 
 .boton:hover {
   border-color: var(--acento);
   box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
-  transform: translateY(-1px);
 }
 
 .boton:active {
-  transform: translateY(0);
-}
-
-.boton-ubicacion {
-  border-color: rgba(56, 189, 248, 0.5);
+  transform: translateY(1px);
 }
 
 .boton-borrar {
@@ -99,42 +233,7 @@ a {
   box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15);
 }
 
-/* ---------- 4) Zona principal: mapa + panel ---------- */
-.principal {
-  flex: 1;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0.8rem auto 1.2rem;
-  padding: 0 1.2rem;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 380px; /* mapa grande a la izquierda */
-  gap: 1rem;
-  align-items: start;
-}
-
-.zona-mapa {
-  background: var(--fondo-2);
-  border: 1px solid var(--borde);
-  border-radius: var(--radio);
-  padding: 0.6rem;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-}
-
-#mapa {
-  height: 70vh;
-  min-height: 380px;
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid var(--borde);
-}
-
-.pista {
-  margin: 0.6rem 0.2rem 0.2rem;
-  color: var(--texto-suave);
-  font-size: 0.85rem;
-}
-
-/* ---------- 5) Panel "Mi recorrido" ---------- */
+/* ---------- 8) Panel "Mi recorrido" ---------- */
 .panel {
   background: var(--fondo-2);
   border: 1px solid var(--borde);
@@ -174,7 +273,7 @@ a {
   flex-direction: column;
   gap: 0.7rem;
   max-height: 65vh;
-  overflow-y: auto; /* si hay muchas tarjetas, aparece scroll interno */
+  overflow-y: auto;
 }
 
 .vacio {
@@ -186,16 +285,16 @@ a {
   margin: 0;
 }
 
-/* ---------- 6) Tarjetas (miniaturas del recorrido) ---------- */
+/* ---------- 9) Tarjetas del recorrido (con FOTO REAL) ---------- */
 .tarjeta {
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr) auto;
+  grid-template-columns: 76px minmax(0, 1fr) auto;
   gap: 0.7rem;
   align-items: start;
   background: #16233d;
   border: 1px solid var(--borde);
   border-radius: 14px;
-  padding: 0.7rem;
+  padding: 0.65rem;
   animation: aparecer 0.25s ease;
 }
 
@@ -204,22 +303,19 @@ a {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* La miniatura: un cuadrado con degradado y el emoji 🧊 (no necesita internet) */
+/* La miniatura ahora es una foto real de Wikimedia (guardada en img/) */
 .miniatura {
-  width: 64px;
-  height: 64px;
+  width: 76px;
+  height: 76px;
+  object-fit: cover; /* recorta la foto para que llene el cuadrado sin deformarse */
   border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.9rem;
-  background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 55%, #a5f3fc 100%);
   border: 1px solid rgba(148, 163, 184, 0.25);
+  background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 55%, #a5f3fc 100%);
 }
 
 .tarjeta-info h3 {
   margin: 0 0 0.25rem;
-  font-size: 0.98rem;
+  font-size: 0.95rem;
 }
 
 .chips {
@@ -238,26 +334,24 @@ a {
   font-size: 0.72rem;
 }
 
-.chip-superficie {
-  background: rgba(148, 163, 184, 0.12);
-  border-color: rgba(148, 163, 184, 0.35);
-  color: var(--texto-suave);
-}
-
 .dato {
   margin: 0;
   font-size: 0.8rem;
   color: var(--texto-suave);
 }
 
+/* Botón ✕: área de toque grande aunque el icono sea chico */
 .quitar {
   background: transparent;
   border: 1px solid transparent;
   color: var(--texto-suave);
-  border-radius: 8px;
-  padding: 0.15rem 0.4rem;
+  border-radius: 10px;
+  width: 40px;
+  height: 40px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .quitar:hover {
@@ -265,7 +359,7 @@ a {
   border-color: rgba(248, 113, 113, 0.4);
 }
 
-/* ---------- 7) Popups de Leaflet con estilo oscuro ---------- */
+/* ---------- 10) Popups de Leaflet con estilo oscuro ---------- */
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
   background: var(--fondo-2);
@@ -275,6 +369,20 @@ a {
 .leaflet-popup-content-wrapper {
   border: 1px solid var(--borde);
   border-radius: 12px;
+}
+
+/* Que el popup no sea más ancho que la pantalla en el celular */
+.leaflet-popup-content {
+  margin: 0.7rem;
+  max-width: min(260px, 70vw);
+}
+
+.popup-foto {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
 }
 
 .popup h3 {
@@ -292,31 +400,72 @@ a {
   color: var(--texto);
 }
 
-/* ---------- 8) Pie ---------- */
+/* ---------- 11) Pie ---------- */
 .pie {
   border-top: 1px solid var(--borde);
-  padding: 0.9rem 1.2rem;
+  padding: 0.8rem 1rem calc(0.8rem + var(--safe-bottom));
   text-align: center;
   color: var(--texto-suave);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
 .pie p {
-  margin: 0;
+  margin: 0.15rem 0;
 }
 
-/* ---------- 9) Responsive: celular ---------- */
+/* =========================================================
+   12) RESPONSIVE: CELULAR
+   Esto es lo que hace que la app se vea bien en el teléfono.
+   ========================================================= */
 @media (max-width: 900px) {
   .principal {
     grid-template-columns: 1fr; /* mapa arriba, panel abajo */
   }
 
   #mapa {
-    height: 55vh;
-    min-height: 300px;
+    /* dvh: en el celu, cuando aparece/desaparece la barra del navegador,
+       vh se desalinea pero dvh se ajusta solo. */
+    height: 52vh;
+    height: 52dvh;
+    min-height: 280px;
   }
 
   .lista-recorrido {
     max-height: none;
+  }
+
+  /* En celular el clima pasa a su propia línea, ocupando todo el ancho */
+  .cabecera {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .clima {
+    justify-content: center;
+    border-radius: 14px;
+  }
+
+  .clima-detalle {
+    white-space: normal;
+  }
+}
+
+/* Celus muy angostos */
+@media (max-width: 380px) {
+  .tarjeta {
+    grid-template-columns: 60px minmax(0, 1fr) auto;
+  }
+
+  .miniatura {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* Si el usuario pidió menos animación (algunas condiciones de salud), respetamos */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
   }
 }

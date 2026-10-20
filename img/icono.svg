@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Icono de la app: un cubito de hielo sobre fondo azul noche -->
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e3a8a"/>
+      <stop offset="1" stop-color="#0b1220"/>
+    </linearGradient>
+    <linearGradient id="cubo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a5f3fc"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#fondo)"/>
+  <!-- cara superior del cubo -->
+  <path d="M256 120 L376 190 L256 260 L136 190 Z" fill="#e0f2fe" opacity="0.95"/>
+  <!-- cara izquierda -->
+  <path d="M136 190 L256 260 L256 400 L136 330 Z" fill="url(#cubo)"/>
+  <!-- cara derecha -->
+  <path d="M376 190 L256 260 L256 400 L376 330 Z" fill="#38bdf8"/>
+  <!-- brillo -->
+  <path d="M256 148 L316 183 L256 218 L196 183 Z" fill="#ffffff" opacity="0.35"/>
+</svg>

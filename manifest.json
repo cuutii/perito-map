@@ -1,0 +1,17 @@
+{
+  "name": "Perito Map — Glaciares del Calafate",
+  "short_name": "Perito Map",
+  "description": "Mapa interactivo de los glaciares de El Calafate. Con tu ubicación armás tu recorrido con miniaturas e info de cada glaciar.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "lang": "es",
+  "icons": [
+    { "src": "img/icono.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "img/icono-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icono-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

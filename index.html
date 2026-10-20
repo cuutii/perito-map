@@ -1,40 +1,67 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <!-- SECCIÓN: configuración básica de la página -->
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Perito Map: mapa interactivo de los glaciares de El Calafate. Al visitarlos vas juntando miniaturas en tu recorrido." />
+  <!-- viewport-fit=cover: que el mapa llegue hasta los bordes en celus con notch -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Perito Map: mapa interactivo de los glaciares de El Calafate. Con tu ubicación armás tu recorrido con miniaturas, fotos e info de cada glaciar." />
+  <meta name="theme-color" content="#0b1220" />
   <title>Perito Map — Glaciares del Calafate</title>
 
-  <!-- SECCIÓN: Leaflet (CSS). Viene desde un CDN, así que hace falta internet. -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossorigin="" />
+  <!-- Manifest: permite "instalar" la app en el celular (como si fuera de la tienda) -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="img/icono.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="img/icono-192.png" />
 
-  <!-- SECCIÓN: nuestros estilos -->
+  <!-- Leaflet cargado desde NUESTRA carpeta (no de internet) para que funcione sin conexión -->
+  <link rel="stylesheet" href="lib/leaflet.css" />
+
+  <!-- Nuestros estilos -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- SECCIÓN: cabecera con el título y el botón de geolocalización -->
+  <!-- SECCIÓN: aviso que aparece solo cuando no hay internet -->
+  <div id="aviso-offline" class="aviso-offline" hidden>
+    📴 Sin conexión — mostrando la última información guardada.
+  </div>
+
+  <!-- SECCIÓN: cabecera -->
   <header class="cabecera">
-    <h1>🧊 Perito Map — Glaciares del Calafate</h1>
-    <p class="subtitulo">Tocá un marcador del mapa para sumarlo a <strong>Mi recorrido</strong>.</p>
-    <button id="btn-ubicacion" type="button" class="boton boton-ubicacion">📍 Mi ubicación</button>
-    <p id="mensaje-geo" class="mensaje-geo" role="status" aria-live="polite"></p>
+    <div class="cabecera-titulo">
+      <h1>🧊 Perito Map</h1>
+      <p class="subtitulo">Glaciares del Calafate</p>
+    </div>
+
+    <!-- El clima se llena con JavaScript desde la API de Open-Meteo -->
+    <div id="clima" class="clima" aria-live="polite">
+      <span class="clima-emoji" aria-hidden="true">⛅</span>
+      <span class="clima-temp">--°</span>
+      <span class="clima-detalle">Cargando clima…</span>
+    </div>
   </header>
 
-  <!-- SECCIÓN: contenido principal (mapa + panel lateral) -->
+  <!-- SECCIÓN: contenido principal -->
   <main class="principal">
 
-    <!-- El mapa vive dentro de este div. Leaflet lo llena con contenido. -->
+    <!-- El mapa vive acá. Leaflet lo llena. -->
     <section class="zona-mapa">
       <div id="mapa"></div>
-      <p class="pista">💡 Hay 7 glaciares marcados en la región de Los Glaciares, Santa Cruz.</p>
+
+      <!-- Botones flotantes SOBRE el mapa (fáciles de alcanzar con el pulgar) -->
+      <div class="mapa-botones">
+        <button id="btn-ubicacion" type="button" class="boton-flotante" aria-label="Centrar el mapa en mi ubicación">
+          📍
+        </button>
+        <button id="btn-centrar" type="button" class="boton-flotante" aria-label="Volver a mostrar toda la región">
+          🧭
+        </button>
+      </div>
+
+      <p id="mensaje-geo" class="mensaje-geo" role="status" aria-live="polite"></p>
     </section>
 
-    <!-- Panel lateral: acá aparecen las miniaturas de los glaciares visitados -->
+    <!-- Panel: acá aparecen las miniaturas de los glaciares visitados -->
     <aside class="panel">
       <div class="panel-titulo">
         <h2>Mi recorrido</h2>
@@ -43,7 +70,7 @@
 
       <ul id="lista-recorrido" class="lista-recorrido" aria-live="polite"></ul>
 
-      <p id="vacio" class="vacio"> Todavía no agregaste glaciares. Hacé clic en un marcador del mapa para empezar.</p>
+      <p id="vacio" class="vacio"> Todavía no agregaste glaciares. Tocá un marcador del mapa para empezar.</p>
 
       <button id="btn-borrar" type="button" class="boton boton-borrar" hidden>🗑️ Borrar recorrido</button>
     </aside>
@@ -52,146 +79,156 @@
 
   <!-- SECCIÓN: pie de página -->
   <footer class="pie">
-    <p>Datos aproximados con fines educativos. Mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Hecho con <a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet</a>.</p>
+    <p>Fotos: <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener">Wikimedia Commons</a> ·
+       Clima: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> ·
+       Mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></p>
+    <p>Funciona sin internet después de la primera visita.</p>
   </footer>
 
-  <!-- SECCIÓN: Leaflet (JS) -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-          crossorigin=""></script>
+  <!-- Leaflet cargado desde nuestra carpeta local -->
+  <script src="lib/leaflet.js"></script>
 
-  <!-- SECCIÓN: JavaScript de la app -->
+  <!-- JavaScript de la app -->
   <script>
     // ---------------------------------------------------------------
-    // 1) DATOS: los 7 glaciares de la región, en un array de objetos.
-    //    Cada objeto tiene: id, nombre, coordenadas, tipo, superficie y un dato curioso.
+    // 1) DATOS: los glaciares. Coordenadas y fotos verificadas en
+    //    Wikipedia/Wikimedia Commons. Las fotos están GUARDADAS en la
+    //    carpeta img/ para que se vean sin internet.
     // ---------------------------------------------------------------
     const glaciares = [
       {
         id: "perito-moreno",
         nombre: "Glaciar Perito Moreno",
-        lat: -50.4967,
-        lng: -73.1377,
+        lat: -50.4932,
+        lng: -73.128,
         tipo: "Glaciar de valle",
         superficie: "250 km² (aprox.)",
-        dato: "Es el más famoso del parque: su frente avanza y retrocede, y cada tanto forma un puente de hielo que se derrumba con un estruendo."
+        foto: "img/perito-moreno.jpg",
+        dato: "El más famoso del parque: su frente avanza y retrocede, y cada tanto forma un puente de hielo que se derrumba con un estruendo."
       },
       {
         id: "upsala",
         nombre: "Glaciar Upsala",
-        lat: -49.9333,
-        lng: -73.3333,
+        lat: -49.7603,
+        lng: -73.2754,
         tipo: "Glaciar de valle",
         superficie: "765 km² (aprox.)",
-        dato: "Es uno de los glaciares más grandes de Sudamérica y se encuentra en retirada: cada año su frente queda más lejos de la costa."
+        foto: "img/upsala.jpg",
+        dato: "Uno de los glaciares más grandes de Sudamérica. Se encuentra en retirada: cada año su frente queda más lejos de la costa."
       },
       {
         id: "spegazzini",
         nombre: "Glaciar Spegazzini",
-        lat: -50.0,
-        lng: -73.35,
+        lat: -50.25,
+        lng: -73.38,
         tipo: "Glaciar de montaña",
         superficie: "52 km² (aprox.)",
-        dato: "Tiene el frente más alto del parque: llega a unos 135 metros sobre el nivel del agua. Lleva el nombre del naturalista Carlos Luis Spegazzini."
-      },
-      {
-        id: "frias",
-        nombre: "Glaciar Frías",
-        lat: -50.0167,
-        lng: -73.25,
-        tipo: "Glaciar de valle",
-        superficie: "15 km² (aprox.)",
-        dato: "Suelta témpanos en el Brazo Frías del lago Argentino; a veces aparecen 'sucios' de hollín y roca que el glaciar arrastra al avanzar."
-      },
-      {
-        id: "moreno-lengua",
-        nombre: "Glaciar Moreno (Lengua)",
-        lat: -50.4833,
-        lng: -73.0667,
-        tipo: "Glaciar de valle",
-        superficie: "Parte del sistema del Perito Moreno",
-        dato: "Es el brazo de hielo que corre paralelo al Brazo Rico: cuando avanza, corta el paso del agua y forma el famoso puente."
+        foto: "img/spegazzini.jpg",
+        dato: "Tiene el frente más alto del parque: unos 135 metros sobre el nivel del agua. Lleva el nombre del naturalista Carlos Luis Spegazzini."
       },
       {
         id: "viedma",
         nombre: "Glaciar Viedma",
-        lat: -49.5,
-        lng: -73.0,
+        lat: -49.4589,
+        lng: -73.1947,
         tipo: "Glaciar de valle",
         superficie: "97 km² (aprox.)",
+        foto: "img/viedma.jpg",
         dato: "Baja desde el Campo de Hielo Sur hasta el lago Viedma y desprenden témpanos tan grandes como una casa de varios pisos."
       },
       {
+        id: "onelli",
+        nombre: "Glaciar Onelli",
+        lat: -50.1206,
+        lng: -73.4286,
+        tipo: "Glaciar de valle",
+        superficie: "Desagua en el lago Argentino",
+        foto: "img/onelli.jpg",
+        dato: "Desemboca en la bahía Onelli, del lago Argentino. Se llega en barco desde la ciudad de El Calafate."
+      },
+      {
         id: "hielo-continental",
-        nombre: "Hielo Continental (Campo de Hielo Sur)",
-        lat: -49.8,
-        lng: -73.5,
+        nombre: "Campo de Hielo Sur",
+        lat: -49.494,
+        lng: -73.2706,
         tipo: "Hielo continental",
-        superficie: "≈ 12.900 km² en total (Argentina y Chile)",
+        superficie: "≈ 12.900 km² (Argentina y Chile)",
+        foto: "img/hielo-continental.jpg",
         dato: "Es la tercera masa de hielo continental del planeta, después de la Antártida y Groenlandia."
+      },
+      {
+        id: "dickson",
+        nombre: "Glaciar Dickson",
+        lat: -50.7833,
+        lng: -73.15,
+        tipo: "Glaciar limítrofe",
+        superficie: "Fluye hacia el lago Dickson",
+        foto: "img/dickson.jpg",
+        dato: "Está en la frontera entre Argentina y Chile, muy cerca del parque nacional Torres del Paine."
       }
     ];
 
     // ---------------------------------------------------------------
     // 2) MAPA: lo creamos con Leaflet y lo centramos en El Calafate.
     // ---------------------------------------------------------------
-    const centro = [-50.3379, -72.2648]; // El Calafate
-    const mapa = L.map("mapa").setView(centro, 9); // zoom 9 alcanza para ver todo el parque
+    const centroCalafate = [-50.3379, -72.2648];
+    const mapa = L.map("mapa", {
+      zoomControl: false,          // sacamos los +/- por defecto (ocupaban espacio en celu)
+      attributionControl: true
+    }).setView(centroCalafate, 9);
 
-    // Las "baldosas" (tiles) de OpenStreetMap: son las imágenes que forman el mapa.
+    // Los controles de zoom abajo a la derecha, más al alcance del pulgar.
+    L.control.zoom({ position: "bottomright" }).addTo(mapa);
+
+    // Las "baldosas" del mapa. El service worker las va guardando a medida
+    // que las usás, así que después funcionan sin internet.
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 18,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(mapa);
 
     // ---------------------------------------------------------------
-    // 3) PERSISTENCIA: guardamos el recorrido en localStorage.
-    //    Es un almacén del navegador que sobrevive al cerrar la pestaña.
+    // 3) PERSISTENCIA: el recorrido vive en localStorage.
     // ---------------------------------------------------------------
     const CLAVE = "perito-map:recorrido";
-
-    let recorrido = cargarRecorrido(); // array con los "id" de los glaciares visitados
+    let recorrido = cargarRecorrido();
 
     function cargarRecorrido() {
       try {
-        const guardado = localStorage.getItem(CLAVE); // leemos el texto guardado
-        if (!guardado) return [];                      // si no hay nada, empezamos vacíos
-        const datos = JSON.parse(guardado);            // de texto pasamos a array
-        // Chequeo simple: debe ser un array y solo guardar ids que existan.
+        const guardado = localStorage.getItem(CLAVE);
+        if (!guardado) return [];
+        const datos = JSON.parse(guardado);
         return Array.isArray(datos)
           ? datos.filter(id => glaciares.some(g => g.id === id))
           : [];
       } catch (error) {
-        return []; // si el dato está corrupto, seguimos de cero
+        return [];
       }
     }
 
     function guardarRecorrido() {
       try {
-        // JSON.stringify convierte el array en texto para poder guardarlo.
         localStorage.setItem(CLAVE, JSON.stringify(recorrido));
       } catch (error) {
-        // El almacenamiento puede fallar (modo incógnito, permisos, etc.)
         console.warn("No se pudo guardar el recorrido:", error);
       }
     }
 
     // ---------------------------------------------------------------
-    // 4) MARCADORES: un pin por cada glaciar, con su popup de información.
+    // 4) MARCADORES: un pin por glaciar, con foto en el popup.
     // ---------------------------------------------------------------
     glaciares.forEach(glaciar => {
       const marcador = L.marker([glaciar.lat, glaciar.lng]).addTo(mapa);
       marcador.bindPopup(contenidoPopup(glaciar));
-
-      // Al hacer clic en el marcador lo agregamos a "Mi recorrido".
       marcador.on("click", () => agregarAlRecorrido(glaciar.id));
     });
 
-    // Contenido del popup (usamos template literal: string entre `comillas invertidas``).
     function contenidoPopup(g) {
+      // loading="lazy": la foto se carga solo cuando el popup se abre.
       return `
         <div class="popup">
-          <h3>🧊 ${g.nombre}</h3>
+          <img class="popup-foto" src="${g.foto}" alt="${g.nombre}" loading="lazy" />
+          <h3>${g.nombre}</h3>
           <p><strong>Tipo:</strong> ${g.tipo}</p>
           <p><strong>Superficie:</strong> ${g.superficie}</p>
           <p>${g.dato}</p>
@@ -200,7 +237,7 @@
     }
 
     // ---------------------------------------------------------------
-    // 5) RECORRIDO: agregar, quitar y pintar las miniaturas.
+    // 5) RECORRIDO: agregar, quitar y pintar las tarjetas con foto.
     // ---------------------------------------------------------------
     const lista = document.getElementById("lista-recorrido");
     const vacio = document.getElementById("vacio");
@@ -208,7 +245,7 @@
     const btnBorrar = document.getElementById("btn-borrar");
 
     function agregarAlRecorrido(id) {
-      if (!recorrido.includes(id)) { // no repetir el mismo glaciar dos veces
+      if (!recorrido.includes(id)) {
         recorrido.push(id);
         guardarRecorrido();
         renderizarRecorrido();
@@ -222,7 +259,7 @@
     }
 
     function renderizarRecorrido() {
-      lista.innerHTML = ""; // vaciamos la lista antes de volver a dibujarla
+      lista.innerHTML = "";
 
       recorrido.forEach(id => {
         const g = glaciares.find(glaciar => glaciar.id === id);
@@ -231,22 +268,21 @@
         const li = document.createElement("li");
         li.className = "tarjeta";
 
-        // Miniatura: un div con degradado y el emoji 🧊 (no depende de internet).
+        // Ahora la miniatura es una FOTO REAL (guardada en img/, funciona offline).
         li.innerHTML = `
-          <div class="miniatura" aria-hidden="true">🧊</div>
+          <img class="miniatura" src="${g.foto}" alt="${g.nombre}" loading="lazy" />
           <div class="tarjeta-info">
             <h3>${g.nombre}</h3>
-            <p class="chips"><span class="chip">${g.tipo}</span><span class="chip chip-superficie">${g.superficie}</span></p>
+            <p class="chips"><span class="chip">${g.tipo}</span></p>
             <p class="dato">${g.dato}</p>
           </div>
-          <button class="quitar" type="button" title="Quitar del recorrido" aria-label="Quitar ${g.nombre} del recorrido">✕</button>
+          <button class="quitar" type="button" aria-label="Quitar ${g.nombre} del recorrido">✕</button>
         `;
 
         li.querySelector(".quitar").addEventListener("click", () => quitarDelRecorrido(id));
         lista.appendChild(li);
       });
 
-      // Estado visual: contador, mensaje vacío y botón de borrar.
       contador.textContent = recorrido.length;
       vacio.hidden = recorrido.length > 0;
       btnBorrar.hidden = recorrido.length === 0;
@@ -258,15 +294,21 @@
       renderizarRecorrido();
     });
 
-    renderizarRecorrido(); // pintamos lo que había guardado de antes
+    renderizarRecorrido();
 
     // ---------------------------------------------------------------
-    // 6) GEOLOCALIZACIÓN: dónde está la persona que usa la app.
+    // 6) GEOLOCALIZACIÓN.
     // ---------------------------------------------------------------
     const btnUbicacion = document.getElementById("btn-ubicacion");
+    const btnCentrar = document.getElementById("btn-centrar");
     const mensajeGeo = document.getElementById("mensaje-geo");
     let marcadorUsuario = null;
     let circuloPrecision = null;
+
+    btnCentrar.addEventListener("click", () => {
+      mapa.setView(centroCalafate, 9);
+      mensajeGeo.textContent = "";
+    });
 
     btnUbicacion.addEventListener("click", () => {
       if (!navigator.geolocation) {
@@ -280,34 +322,24 @@
         posicion => {
           const lat = posicion.coords.latitude;
           const lng = posicion.coords.longitude;
-          const precision = posicion.coords.accuracy; // metros
+          const precision = posicion.coords.accuracy;
 
-          // Quitamos el marcador anterior, si lo había.
           if (marcadorUsuario) { mapa.removeLayer(marcadorUsuario); marcadorUsuario = null; }
           if (circuloPrecision) { mapa.removeLayer(circuloPrecision); circuloPrecision = null; }
 
-          // Marcador distinto al de los glaciares: un punto celeste con círculo de precisión.
           marcadorUsuario = L.circleMarker([lat, lng], {
-            radius: 9,
-            color: "#7dd3fc",
-            weight: 3,
-            fillColor: "#38bdf8",
-            fillOpacity: 0.95
+            radius: 9, color: "#7dd3fc", weight: 3, fillColor: "#38bdf8", fillOpacity: 0.95
           }).addTo(mapa).bindPopup("📍 Acá estás vos");
 
           circuloPrecision = L.circle([lat, lng], {
-            radius: precision,
-            color: "#38bdf8",
-            weight: 1,
-            fillColor: "#38bdf8",
-            fillOpacity: 0.12
+            radius: precision, color: "#38bdf8", weight: 1, fillColor: "#38bdf8", fillOpacity: 0.12
           }).addTo(mapa);
 
           mapa.setView([lat, lng], 13);
           mensajeGeo.textContent = "✅ Listo, centramos el mapa en tu ubicación.";
         },
         error => {
-          // Manejo de errores: permiso denegado, GPS apagado, timeout, etc.
+          // En celulares, el error 1 casi siempre significa permiso denegado.
           const mensajes = {
             1: "🚫 Permiso de ubicación denegado. Activalo en la configuración del navegador.",
             2: "🛰️ No pudimos obtener tu ubicación (señal débil o GPS apagado).",
@@ -315,13 +347,112 @@
           };
           mensajeGeo.textContent = mensajes[error.code] || "😞 No pudimos obtener tu ubicación.";
         },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 60000
-        }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
       );
     });
+
+    // ---------------------------------------------------------------
+    // 7) CLIMA EN TIEMPO REAL (Open-Meteo, gratuito y sin clave).
+    //    Pedimos temperatura, código de clima y viento de El Calafate.
+    // ---------------------------------------------------------------
+    const CLIMA_URL = "https://api.open-meteo.com/v1/forecast"
+      + "?latitude=-50.3379&longitude=-72.2648"
+      + "&current=temperature_2m,weather_code,wind_speed_10m"
+      + "&timezone=America%2FArgentina%2FRio_Gallegos";
+
+    // Los códigos WMO son números que significan un tipo de clima.
+    // Acá los convertimos a emoji y texto para que un humano lo entienda.
+    const CLIMAS_WMO = {
+      0:  ["☀️", "Despejado"],
+      1:  ["🌤️", "Mayormente despejado"],
+      2:  ["⛅", "Parcialmente nublado"],
+      3:  ["☁️", "Nublado"],
+      45: ["🌫️", "Niebla"],
+      48: ["🌫️", "Niebla con escarcha"],
+      51: ["🌦️", "Llovizna débil"],
+      53: ["🌦️", "Llovizna"],
+      55: ["🌧️", "Llovizna intensa"],
+      61: ["🌧️", "Lluvia débil"],
+      63: ["🌧️", "Lluvia"],
+      65: ["🌧️", "Lluvia intensa"],
+      71: ["🌨️", "Nieve débil"],
+      73: ["🌨️", "Nieve"],
+      75: ["❄️", "Nieve intensa"],
+      80: ["🌦️", "Chubascos"],
+      81: ["🌧️", "Chubascos fuertes"],
+      82: ["⛈️", "Chubascos violentos"],
+      95: ["⛈️", "Tormenta"],
+      96: ["⛈️", "Tormenta con granizo"]
+    };
+
+    const cajaClima = document.getElementById("clima");
+
+    function pintarClima(datos, desdeCache) {
+      const actual = datos.current;
+      const [emoji, texto] = CLIMAS_WMO[actual.weather_code] || ["🌡️", "Clima variable"];
+
+      cajaClima.innerHTML = `
+        <span class="clima-emoji" aria-hidden="true">${emoji}</span>
+        <span class="clima-temp">${Math.round(actual.temperature_2m)}°</span>
+        <span class="clima-detalle">${texto} · Viento ${Math.round(actual.wind_speed_10m)} km/h${desdeCache ? " · (guardado)" : ""}</span>
+      `;
+    }
+
+    function actualizarClima() {
+      fetch(CLIMA_URL)
+        .then(respuesta => {
+          if (!respuesta.ok) throw new Error("HTTP " + respuesta.status);
+          return respuesta.json();
+        })
+        .then(datos => {
+          pintarClima(datos, false);
+          // Guardamos una copia en localStorage por si después no hay internet.
+          try { localStorage.setItem("perito-map:clima", JSON.stringify(datos)); } catch (e) {}
+        })
+        .catch(() => {
+          // Sin internet: mostramos el último clima que tengamos guardado.
+          try {
+            const guardado = localStorage.getItem("perito-map:clima");
+            if (guardado) { pintarClima(JSON.parse(guardado), true); return; }
+          } catch (e) {}
+          cajaClima.innerHTML = `
+            <span class="clima-emoji" aria-hidden="true">📴</span>
+            <span class="clima-detalle">Sin datos de clima (sin conexión)</span>
+          `;
+        });
+    }
+
+    actualizarClima();
+    // Cada 15 minutos pedimos el clima de nuevo (si hay internet).
+    setInterval(actualizarClima, 15 * 60 * 1000);
+
+    // ---------------------------------------------------------------
+    // 8) ESTADO DE CONEXIÓN: avisos de "sin internet".
+    // ---------------------------------------------------------------
+    const avisoOffline = document.getElementById("aviso-offline");
+
+    function actualizarConexion() {
+      avisoOffline.hidden = navigator.onLine;
+      // Volvemos a pedir el clima cuando se restablece la conexión.
+      if (navigator.onLine) actualizarClima();
+    }
+
+    window.addEventListener("online", actualizarConexion);
+    window.addEventListener("offline", actualizarConexion);
+    actualizarConexion();
+
+    // ---------------------------------------------------------------
+    // 9) SERVICE WORKER: esto es lo que permite que la app funcione
+    //    SIN INTERNET. Solo funciona si la página está publicada
+    //    (https://...) o corriendo con Live Server, no con doble clic.
+    // ---------------------------------------------------------------
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js")
+          .then(() => console.log("✅ Modo sin internet activado."))
+          .catch(error => console.warn("No se pudo activar el modo offline:", error));
+      });
+    }
   </script>
 </body>
 </html>
