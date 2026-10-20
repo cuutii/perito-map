@@ -104,9 +104,9 @@ Imágenes obtenidas de [Wikimedia Commons](https://commons.wikimedia.org/) y gua
 - **Glaciar Viedma** — © Osvaldo R. T. Hu ([archivo original](https://commons.wikimedia.org/wiki/File:Glaciar_Viedma_01.jpg)). Licencia [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/). Sin modificaciones.
 - **Laguna Onelli** — © [Heretiq](https://commons.wikimedia.org/wiki/User:Heretiq) ([archivo original](https://commons.wikimedia.org/wiki/File:LagunaOneli.jpg)). Licencia [CC BY-SA 2.5](https://creativecommons.org/licenses/by-sa/2.5). Sin modificaciones.
 - **Campo de Hielo Continental (imagen satelital)** — NASA / [Landsat 8 OLI – Visible Earth](https://landsat.visibleearth.nasa.gov/view.php?id=90464) ([archivo original](https://commons.wikimedia.org/wiki/File:Sothernpatagonia_oli_2016120_2016145_2016122_lrg.jpg)). Dominio público.
-- **Torres del Paine (vista satelital, ISS006-E-41420)** — NASA ([archivo original](https://commons.wikimedia.org/wiki/File:Torres_del_Paine_NASA.jpg)). Dominio público.
+- **Glaciar Dickson (vista del lago Dickson, con el glaciar al fondo)** — © [John Spooner](https://www.flickr.com/photos/29809546@N00) (2008) ([archivo original](https://commons.wikimedia.org/wiki/File:Lago_Dickson.jpg)). Licencia [CC BY 2.0](https://creativecommons.org/licenses/by/2.0). Sin modificaciones.
 
-Las imágenes con licencia **CC BY-SA** se distribuyen **sin modificaciones**. Cualquier obra derivada de ellas (recorte, reescalado, edición) debe publicarse bajo la **misma licencia CC BY-SA** e incluir la atribución indicada.
+Las fotografías se distribuyen **sin modificaciones**. De las 7 imágenes, **5 van bajo licencia CC BY-SA** (exigen que cualquier obra derivada —recorte, reescalado, edición— se publique bajo la misma licencia), **1 bajo CC BY 2.0** (exige atribución pero no ShareAlike) y **1 es de la NASA**, en dominio público. Todas las que exigen atribución la llevan indicada arriba.
 
 ## ✏️ Personalización
 
