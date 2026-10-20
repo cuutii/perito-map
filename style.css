@@ -1,0 +1,322 @@
+/* =========================================================
+   PERITO MAP — style.css
+   Diseño oscuro con tono azulado, tarjetas redondeadas
+   y adaptado a celular (responsive).
+   ========================================================= */
+
+/* ---------- 1) Variables y base ---------- */
+:root {
+  --fondo: #0b1220;          /* fondo general (azul muy oscuro) */
+  --fondo-2: #111c33;        /* paneles y tarjetas */
+  --borde: #22314f;          /* bordes suaves */
+  --texto: #e2e8f0;          /* texto principal */
+  --texto-suave: #94a3b8;    /* texto secundario */
+  --acento: #38bdf8;         /* celeste destacado */
+  --peligro: #f87171;        /* rojo para acciones destructivas */
+  --radio: 16px;             /* redondeo estándar */
+}
+
+* {
+  box-sizing: border-box; /* el padding no agranda el ancho de los elementos */
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(1200px 600px at 20% -10%, #16233d 0%, var(--fondo) 55%);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: var(--acento);
+}
+
+/* ---------- 2) Cabecera ---------- */
+.cabecera {
+  padding: 1.2rem 1.2rem 0.6rem;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.cabecera h1 {
+  margin: 0;
+  font-size: clamp(1.3rem, 4vw, 2rem);
+  letter-spacing: 0.2px;
+}
+
+.subtitulo {
+  margin: 0.4rem 0 0.9rem;
+  color: var(--texto-suave);
+  font-size: 0.98rem;
+}
+
+.mensaje-geo {
+  min-height: 1.2rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+}
+
+/* ---------- 3) Botones ---------- */
+.boton {
+  border: 1px solid var(--borde);
+  background: linear-gradient(180deg, #1c2c4a, #16233d);
+  color: var(--texto);
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.boton:hover {
+  border-color: var(--acento);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+  transform: translateY(-1px);
+}
+
+.boton:active {
+  transform: translateY(0);
+}
+
+.boton-ubicacion {
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+.boton-borrar {
+  margin-top: 0.9rem;
+  width: 100%;
+  color: var(--peligro);
+}
+
+.boton-borrar:hover {
+  border-color: var(--peligro);
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15);
+}
+
+/* ---------- 4) Zona principal: mapa + panel ---------- */
+.principal {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0.8rem auto 1.2rem;
+  padding: 0 1.2rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px; /* mapa grande a la izquierda */
+  gap: 1rem;
+  align-items: start;
+}
+
+.zona-mapa {
+  background: var(--fondo-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 0.6rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+#mapa {
+  height: 70vh;
+  min-height: 380px;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--borde);
+}
+
+.pista {
+  margin: 0.6rem 0.2rem 0.2rem;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+/* ---------- 5) Panel "Mi recorrido" ---------- */
+.panel {
+  background: var(--fondo-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.panel-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.panel-titulo h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.contador {
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--acento);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.lista-recorrido {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  max-height: 65vh;
+  overflow-y: auto; /* si hay muchas tarjetas, aparece scroll interno */
+}
+
+.vacio {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  border: 1px dashed var(--borde);
+  border-radius: 12px;
+  padding: 0.9rem;
+  margin: 0;
+}
+
+/* ---------- 6) Tarjetas (miniaturas del recorrido) ---------- */
+.tarjeta {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  align-items: start;
+  background: #16233d;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  padding: 0.7rem;
+  animation: aparecer 0.25s ease;
+}
+
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* La miniatura: un cuadrado con degradado y el emoji 🧊 (no necesita internet) */
+.miniatura {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.9rem;
+  background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 55%, #a5f3fc 100%);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.tarjeta-info h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.98rem;
+}
+
+.chips {
+  margin: 0 0 0.35rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.chip {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: var(--acento);
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+  font-size: 0.72rem;
+}
+
+.chip-superficie {
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.35);
+  color: var(--texto-suave);
+}
+
+.dato {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.quitar {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--texto-suave);
+  border-radius: 8px;
+  padding: 0.15rem 0.4rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.quitar:hover {
+  color: var(--peligro);
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
+/* ---------- 7) Popups de Leaflet con estilo oscuro ---------- */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--fondo-2);
+  color: var(--texto);
+}
+
+.leaflet-popup-content-wrapper {
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+}
+
+.popup h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.popup p {
+  margin: 0.15rem 0;
+  font-size: 0.82rem;
+  color: var(--texto-suave);
+}
+
+.popup strong {
+  color: var(--texto);
+}
+
+/* ---------- 8) Pie ---------- */
+.pie {
+  border-top: 1px solid var(--borde);
+  padding: 0.9rem 1.2rem;
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+}
+
+.pie p {
+  margin: 0;
+}
+
+/* ---------- 9) Responsive: celular ---------- */
+@media (max-width: 900px) {
+  .principal {
+    grid-template-columns: 1fr; /* mapa arriba, panel abajo */
+  }
+
+  #mapa {
+    height: 55vh;
+    min-height: 300px;
+  }
+
+  .lista-recorrido {
+    max-height: none;
+  }
+}

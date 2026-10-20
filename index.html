@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- SECCIÓN: configuración básica de la página -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Perito Map: mapa interactivo de los glaciares de El Calafate. Al visitarlos vas juntando miniaturas en tu recorrido." />
+  <title>Perito Map — Glaciares del Calafate</title>
+
+  <!-- SECCIÓN: Leaflet (CSS). Viene desde un CDN, así que hace falta internet. -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="" />
+
+  <!-- SECCIÓN: nuestros estilos -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- SECCIÓN: cabecera con el título y el botón de geolocalización -->
+  <header class="cabecera">
+    <h1>🧊 Perito Map — Glaciares del Calafate</h1>
+    <p class="subtitulo">Tocá un marcador del mapa para sumarlo a <strong>Mi recorrido</strong>.</p>
+    <button id="btn-ubicacion" type="button" class="boton boton-ubicacion">📍 Mi ubicación</button>
+    <p id="mensaje-geo" class="mensaje-geo" role="status" aria-live="polite"></p>
+  </header>
+
+  <!-- SECCIÓN: contenido principal (mapa + panel lateral) -->
+  <main class="principal">
+
+    <!-- El mapa vive dentro de este div. Leaflet lo llena con contenido. -->
+    <section class="zona-mapa">
+      <div id="mapa"></div>
+      <p class="pista">💡 Hay 7 glaciares marcados en la región de Los Glaciares, Santa Cruz.</p>
+    </section>
+
+    <!-- Panel lateral: acá aparecen las miniaturas de los glaciares visitados -->
+    <aside class="panel">
+      <div class="panel-titulo">
+        <h2>Mi recorrido</h2>
+        <span id="contador" class="contador">0</span>
+      </div>
+
+      <ul id="lista-recorrido" class="lista-recorrido" aria-live="polite"></ul>
+
+      <p id="vacio" class="vacio"> Todavía no agregaste glaciares. Hacé clic en un marcador del mapa para empezar.</p>
+
+      <button id="btn-borrar" type="button" class="boton boton-borrar" hidden>🗑️ Borrar recorrido</button>
+    </aside>
+
+  </main>
+
+  <!-- SECCIÓN: pie de página -->
+  <footer class="pie">
+    <p>Datos aproximados con fines educativos. Mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Hecho con <a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet</a>.</p>
+  </footer>
+
+  <!-- SECCIÓN: Leaflet (JS) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
+
+  <!-- SECCIÓN: JavaScript de la app -->
+  <script>
+    // ---------------------------------------------------------------
+    // 1) DATOS: los 7 glaciares de la región, en un array de objetos.
+    //    Cada objeto tiene: id, nombre, coordenadas, tipo, superficie y un dato curioso.
+    // ---------------------------------------------------------------
+    const glaciares = [
+      {
+        id: "perito-moreno",
+        nombre: "Glaciar Perito Moreno",
+        lat: -50.4967,
+        lng: -73.1377,
+        tipo: "Glaciar de valle",
+        superficie: "250 km² (aprox.)",
+        dato: "Es el más famoso del parque: su frente avanza y retrocede, y cada tanto forma un puente de hielo que se derrumba con un estruendo."
+      },
+      {
+        id: "upsala",
+        nombre: "Glaciar Upsala",
+        lat: -49.9333,
+        lng: -73.3333,
+        tipo: "Glaciar de valle",
+        superficie: "765 km² (aprox.)",
+        dato: "Es uno de los glaciares más grandes de Sudamérica y se encuentra en retirada: cada año su frente queda más lejos de la costa."
+      },
+      {
+        id: "spegazzini",
+        nombre: "Glaciar Spegazzini",
+        lat: -50.0,
+        lng: -73.35,
+        tipo: "Glaciar de montaña",
+        superficie: "52 km² (aprox.)",
+        dato: "Tiene el frente más alto del parque: llega a unos 135 metros sobre el nivel del agua. Lleva el nombre del naturalista Carlos Luis Spegazzini."
+      },
+      {
+        id: "frias",
+        nombre: "Glaciar Frías",
+        lat: -50.0167,
+        lng: -73.25,
+        tipo: "Glaciar de valle",
+        superficie: "15 km² (aprox.)",
+        dato: "Suelta témpanos en el Brazo Frías del lago Argentino; a veces aparecen 'sucios' de hollín y roca que el glaciar arrastra al avanzar."
+      },
+      {
+        id: "moreno-lengua",
+        nombre: "Glaciar Moreno (Lengua)",
+        lat: -50.4833,
+        lng: -73.0667,
+        tipo: "Glaciar de valle",
+        superficie: "Parte del sistema del Perito Moreno",
+        dato: "Es el brazo de hielo que corre paralelo al Brazo Rico: cuando avanza, corta el paso del agua y forma el famoso puente."
+      },
+      {
+        id: "viedma",
+        nombre: "Glaciar Viedma",
+        lat: -49.5,
+        lng: -73.0,
+        tipo: "Glaciar de valle",
+        superficie: "97 km² (aprox.)",
+        dato: "Baja desde el Campo de Hielo Sur hasta el lago Viedma y desprenden témpanos tan grandes como una casa de varios pisos."
+      },
+      {
+        id: "hielo-continental",
+        nombre: "Hielo Continental (Campo de Hielo Sur)",
+        lat: -49.8,
+        lng: -73.5,
+        tipo: "Hielo continental",
+        superficie: "≈ 12.900 km² en total (Argentina y Chile)",
+        dato: "Es la tercera masa de hielo continental del planeta, después de la Antártida y Groenlandia."
+      }
+    ];
+
+    // ---------------------------------------------------------------
+    // 2) MAPA: lo creamos con Leaflet y lo centramos en El Calafate.
+    // ---------------------------------------------------------------
+    const centro = [-50.3379, -72.2648]; // El Calafate
+    const mapa = L.map("mapa").setView(centro, 9); // zoom 9 alcanza para ver todo el parque
+
+    // Las "baldosas" (tiles) de OpenStreetMap: son las imágenes que forman el mapa.
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mapa);
+
+    // ---------------------------------------------------------------
+    // 3) PERSISTENCIA: guardamos el recorrido en localStorage.
+    //    Es un almacén del navegador que sobrevive al cerrar la pestaña.
+    // ---------------------------------------------------------------
+    const CLAVE = "perito-map:recorrido";
+
+    let recorrido = cargarRecorrido(); // array con los "id" de los glaciares visitados
+
+    function cargarRecorrido() {
+      try {
+        const guardado = localStorage.getItem(CLAVE); // leemos el texto guardado
+        if (!guardado) return [];                      // si no hay nada, empezamos vacíos
+        const datos = JSON.parse(guardado);            // de texto pasamos a array
+        // Chequeo simple: debe ser un array y solo guardar ids que existan.
+        return Array.isArray(datos)
+          ? datos.filter(id => glaciares.some(g => g.id === id))
+          : [];
+      } catch (error) {
+        return []; // si el dato está corrupto, seguimos de cero
+      }
+    }
+
+    function guardarRecorrido() {
+      try {
+        // JSON.stringify convierte el array en texto para poder guardarlo.
+        localStorage.setItem(CLAVE, JSON.stringify(recorrido));
+      } catch (error) {
+        // El almacenamiento puede fallar (modo incógnito, permisos, etc.)
+        console.warn("No se pudo guardar el recorrido:", error);
+      }
+    }
+
+    // ---------------------------------------------------------------
+    // 4) MARCADORES: un pin por cada glaciar, con su popup de información.
+    // ---------------------------------------------------------------
+    glaciares.forEach(glaciar => {
+      const marcador = L.marker([glaciar.lat, glaciar.lng]).addTo(mapa);
+      marcador.bindPopup(contenidoPopup(glaciar));
+
+      // Al hacer clic en el marcador lo agregamos a "Mi recorrido".
+      marcador.on("click", () => agregarAlRecorrido(glaciar.id));
+    });
+
+    // Contenido del popup (usamos template literal: string entre `comillas invertidas``).
+    function contenidoPopup(g) {
+      return `
+        <div class="popup">
+          <h3>🧊 ${g.nombre}</h3>
+          <p><strong>Tipo:</strong> ${g.tipo}</p>
+          <p><strong>Superficie:</strong> ${g.superficie}</p>
+          <p>${g.dato}</p>
+        </div>
+      `;
+    }
+
+    // ---------------------------------------------------------------
+    // 5) RECORRIDO: agregar, quitar y pintar las miniaturas.
+    // ---------------------------------------------------------------
+    const lista = document.getElementById("lista-recorrido");
+    const vacio = document.getElementById("vacio");
+    const contador = document.getElementById("contador");
+    const btnBorrar = document.getElementById("btn-borrar");
+
+    function agregarAlRecorrido(id) {
+      if (!recorrido.includes(id)) { // no repetir el mismo glaciar dos veces
+        recorrido.push(id);
+        guardarRecorrido();
+        renderizarRecorrido();
+      }
+    }
+
+    function quitarDelRecorrido(id) {
+      recorrido = recorrido.filter(item => item !== id);
+      guardarRecorrido();
+      renderizarRecorrido();
+    }
+
+    function renderizarRecorrido() {
+      lista.innerHTML = ""; // vaciamos la lista antes de volver a dibujarla
+
+      recorrido.forEach(id => {
+        const g = glaciares.find(glaciar => glaciar.id === id);
+        if (!g) return;
+
+        const li = document.createElement("li");
+        li.className = "tarjeta";
+
+        // Miniatura: un div con degradado y el emoji 🧊 (no depende de internet).
+        li.innerHTML = `
+          <div class="miniatura" aria-hidden="true">🧊</div>
+          <div class="tarjeta-info">
+            <h3>${g.nombre}</h3>
+            <p class="chips"><span class="chip">${g.tipo}</span><span class="chip chip-superficie">${g.superficie}</span></p>
+            <p class="dato">${g.dato}</p>
+          </div>
+          <button class="quitar" type="button" title="Quitar del recorrido" aria-label="Quitar ${g.nombre} del recorrido">✕</button>
+        `;
+
+        li.querySelector(".quitar").addEventListener("click", () => quitarDelRecorrido(id));
+        lista.appendChild(li);
+      });
+
+      // Estado visual: contador, mensaje vacío y botón de borrar.
+      contador.textContent = recorrido.length;
+      vacio.hidden = recorrido.length > 0;
+      btnBorrar.hidden = recorrido.length === 0;
+    }
+
+    btnBorrar.addEventListener("click", () => {
+      recorrido = [];
+      guardarRecorrido();
+      renderizarRecorrido();
+    });
+
+    renderizarRecorrido(); // pintamos lo que había guardado de antes
+
+    // ---------------------------------------------------------------
+    // 6) GEOLOCALIZACIÓN: dónde está la persona que usa la app.
+    // ---------------------------------------------------------------
+    const btnUbicacion = document.getElementById("btn-ubicacion");
+    const mensajeGeo = document.getElementById("mensaje-geo");
+    let marcadorUsuario = null;
+    let circuloPrecision = null;
+
+    btnUbicacion.addEventListener("click", () => {
+      if (!navigator.geolocation) {
+        mensajeGeo.textContent = "😞 Tu navegador no soporta geolocalización.";
+        return;
+      }
+
+      mensajeGeo.textContent = "⏳ Buscando tu ubicación…";
+
+      navigator.geolocation.getCurrentPosition(
+        posicion => {
+          const lat = posicion.coords.latitude;
+          const lng = posicion.coords.longitude;
+          const precision = posicion.coords.accuracy; // metros
+
+          // Quitamos el marcador anterior, si lo había.
+          if (marcadorUsuario) { mapa.removeLayer(marcadorUsuario); marcadorUsuario = null; }
+          if (circuloPrecision) { mapa.removeLayer(circuloPrecision); circuloPrecision = null; }
+
+          // Marcador distinto al de los glaciares: un punto celeste con círculo de precisión.
+          marcadorUsuario = L.circleMarker([lat, lng], {
+            radius: 9,
+            color: "#7dd3fc",
+            weight: 3,
+            fillColor: "#38bdf8",
+            fillOpacity: 0.95
+          }).addTo(mapa).bindPopup("📍 Acá estás vos");
+
+          circuloPrecision = L.circle([lat, lng], {
+            radius: precision,
+            color: "#38bdf8",
+            weight: 1,
+            fillColor: "#38bdf8",
+            fillOpacity: 0.12
+          }).addTo(mapa);
+
+          mapa.setView([lat, lng], 13);
+          mensajeGeo.textContent = "✅ Listo, centramos el mapa en tu ubicación.";
+        },
+        error => {
+          // Manejo de errores: permiso denegado, GPS apagado, timeout, etc.
+          const mensajes = {
+            1: "🚫 Permiso de ubicación denegado. Activalo en la configuración del navegador.",
+            2: "🛰️ No pudimos obtener tu ubicación (señal débil o GPS apagado).",
+            3: "⏱️ Se agotó el tiempo de espera buscando tu ubicación."
+          };
+          mensajeGeo.textContent = mensajes[error.code] || "😞 No pudimos obtener tu ubicación.";
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
+        }
+      );
+    });
+  </script>
+</body>
+</html>
