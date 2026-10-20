@@ -414,10 +414,18 @@
       const actual = datos.current;
       const [emoji, texto] = CLIMAS_WMO[actual.weather_code] || ["🌡️", "Clima variable"];
 
+      // Guardas contra datos ausentes: si la API no manda temperatura o viento,
+      // Math.round(null) daría 0 y estaríamos mostrando un dato FALSO.
+      // En vez de eso mostramos un guión y lo decimos con texto.
+      const temp = actual.temperature_2m;
+      const viento = actual.wind_speed_10m;
+      const tempTexto = (temp === null || temp === undefined) ? "—" : Math.round(temp) + "°";
+      const vientoTexto = (viento === null || viento === undefined) ? "viento s/dato" : Math.round(viento) + " km/h";
+
       cajaClima.innerHTML = `
         <span class="clima-emoji" aria-hidden="true">${emoji}</span>
-        <span class="clima-temp">${Math.round(actual.temperature_2m)}°</span>
-        <span class="clima-detalle">${texto} · Viento ${Math.round(actual.wind_speed_10m)} km/h${desdeCache ? " · (guardado)" : ""}</span>
+        <span class="clima-temp">${tempTexto}</span>
+        <span class="clima-detalle">${texto} · Viento ${vientoTexto}${desdeCache ? " · (guardado)" : ""}</span>
       `;
     }
 
@@ -428,9 +436,17 @@
           return respuesta.json();
         })
         .then(datos => {
-          pintarClima(datos, false);
-          // Guardamos una copia en localStorage por si después no hay internet.
-          try { localStorage.setItem("perito-map:clima", JSON.stringify(datos)); } catch (e) {}
+          // Si no hay internet, el service worker devuelve la copia guardada
+          // con estado 200, así que este fetch "parece" exitoso. Por eso acá
+          // también miramos navigator.onLine: de lo contrario pintaríamos un
+          // dato de hace horas como si fuera recién obtenido.
+          const esDatoGuardado = !navigator.onLine;
+          pintarClima(datos, esDatoGuardado);
+
+          // Solo pisamos el guardado con datos frescos de verdad.
+          if (!esDatoGuardado) {
+            try { localStorage.setItem("perito-map:clima", JSON.stringify(datos)); } catch (e) {}
+          }
         })
         .catch(() => {
           // Sin internet: mostramos el último clima que tengamos guardado.
@@ -474,7 +490,12 @@
       }
     });
 
-    arrancarTemporizadorClima();
+    // Si la página cargó con la pestaña ya oculta (por ejemplo, restaurada en
+    // segundo plano), no arrancamos: visibilitychange solo avisa ante CAMBIOS,
+    // así que si arrancáramos acá, el temporizador quedaría corriendo en vano.
+    if (!document.hidden) {
+      arrancarTemporizadorClima();
+    }
 
     // ---------------------------------------------------------------
     // 8) ESTADO DE CONEXIÓN: avisos de "sin internet".

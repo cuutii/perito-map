@@ -273,6 +273,7 @@ a {
   flex-direction: column;
   gap: 0.7rem;
   max-height: 65vh;
+  max-height: 65dvh; /* igual que #mapa: dvh se adapta a la barra del navegador */
   overflow-y: auto;
 }
 

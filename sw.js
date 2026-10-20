@@ -17,7 +17,7 @@
 
 // Nombre de la caché. Si cambiamos la versión (V2, V3...), el navegador
 // descarga todo de nuevo y borra lo viejo.
-const CACHE_V1 = "perito-map-v3";
+const CACHE_V1 = "perito-map-v4";
 
 // Archivos que queremos que funcionen sin internet.
 // Ojo: los paths son relativos a sw.js (que vive en la raíz del proyecto).
@@ -32,6 +32,10 @@ const ARCHIVOS = [
   "./lib/images/marker-icon.png",
   "./lib/images/marker-icon-2x.png",
   "./lib/images/marker-shadow.png",
+  // Íconos de la app (el manifest los pide; si no están, la app instalada
+  // se abriría sin ícono cuando no hay internet)
+  "./img/icono.svg",
+  "./img/icono-192.png",
   // Fotos de los glaciares (descargadas de Wikimedia Commons)
   "./img/perito-moreno.jpg",
   "./img/upsala.jpg",
@@ -98,6 +102,20 @@ self.addEventListener("fetch", evento => {
               cache.put(evento.request, respuesta.clone());
             }
             return respuesta;
+          }).catch(() => {
+            // Sin internet y sin esa baldosa guardada: devolvemos una imagen
+            // TRANSPARENTE en vez de una promesa rechazada. Así el mapa se ve
+            // con huecos (donde antes iba la baldosa) y la consola no se llena
+            // de errores por cada baldosa que falte.
+            // Ojo: atob() pasa de base64 a texto, así que hay que convertir cada
+            // carácter a su byte; si devolviéramos el base64 tal cual, el
+            // navegador no sabría leerlo como GIF.
+            const binario = atob("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"); // GIF 1x1 transparente
+            const bytes = Uint8Array.from(binario, caracter => caracter.charCodeAt(0));
+            return new Response(bytes, {
+              status: 200,
+              headers: { "Content-Type": "image/gif", "Cache-Control": "no-store" }
+            });
           });
           // Si no la teníamos guardada, usamos la red.
           return guardada || irARed;
@@ -114,8 +132,12 @@ self.addEventListener("fetch", evento => {
     evento.respondWith(
       fetch(evento.request)
         .then(respuesta => {
-          const copia = respuesta.clone();
-          caches.open("perito-map-clima").then(cache => cache.put(evento.request, copia));
+          // Solo guardamos respuestas correctas: si la API falla (4xx/5xx)
+          // no queremos pisar el último clima bueno con ese error.
+          if (respuesta && respuesta.status === 200) {
+            const copia = respuesta.clone();
+            caches.open("perito-map-clima").then(cache => cache.put(evento.request, copia));
+          }
           return respuesta;
         })
         .catch(() =>
