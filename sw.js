@@ -17,7 +17,7 @@
 
 // Nombre de la caché. Si cambiamos la versión (V2, V3...), el navegador
 // descarga todo de nuevo y borra lo viejo.
-const CACHE_V1 = "perito-map-v1";
+const CACHE_V1 = "perito-map-v2";
 
 // Archivos que queremos que funcionen sin internet.
 // Ojo: los paths son relativos a sw.js (que vive en la raíz del proyecto).
