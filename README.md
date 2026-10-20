@@ -94,9 +94,19 @@ powershell -ExecutionPolicy Bypass -File servidor-prueba.ps1
 
 > **Nota de geolocalización:** algunas versiones de Chrome bloquean la geolocalización en páginas abiertas desde el disco (`file://`). Con el servidor local o en GitHub Pages funciona bien.
 
-## 📸 Créditos de las fotos
+## 📸 Créditos de imágenes
 
-Las fotografías de los glaciares vienen de **[Wikimedia Commons](https://commons.wikimedia.org/)** y están guardadas localmente en `img/`. Cada imagen respeta su licencia original (Creative Commons); los créditos y las licencias específicas de cada foto están en la ficha de su archivo en Commons.
+Imágenes obtenidas de [Wikimedia Commons](https://commons.wikimedia.org/) y guardadas localmente en `img/`:
+
+- **Glaciar Perito Moreno** — © [Fernando](https://commons.wikimedia.org/wiki/User:Fernando) ([archivo original](https://commons.wikimedia.org/wiki/File:Perito_Moreno_Glacier_2023.jpg)). Licencia [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0). Sin modificaciones.
+- **Glaciar Upsala** — © [Marianocecowski](https://commons.wikimedia.org/wiki/User:Marianocecowski) (2004) ([archivo original](https://commons.wikimedia.org/wiki/File:SantaCruz-Upsala-P2140135b.jpg)). Licencia [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/). Sin modificaciones.
+- **Glaciar Spegazzini** — © [Fernando](https://commons.wikimedia.org/wiki/User:Fernando) ([archivo original](https://commons.wikimedia.org/wiki/File:Spegazzini_Glacier_2023.jpg)). Licencia [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0). Sin modificaciones.
+- **Glaciar Viedma** — © Osvaldo R. T. Hu ([archivo original](https://commons.wikimedia.org/wiki/File:Glaciar_Viedma_01.jpg)). Licencia [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/). Sin modificaciones.
+- **Laguna Onelli** — © [Heretiq](https://commons.wikimedia.org/wiki/User:Heretiq) ([archivo original](https://commons.wikimedia.org/wiki/File:LagunaOneli.jpg)). Licencia [CC BY-SA 2.5](https://creativecommons.org/licenses/by-sa/2.5). Sin modificaciones.
+- **Campo de Hielo Continental (imagen satelital)** — NASA / [Landsat 8 OLI – Visible Earth](https://landsat.visibleearth.nasa.gov/view.php?id=90464) ([archivo original](https://commons.wikimedia.org/wiki/File:Sothernpatagonia_oli_2016120_2016145_2016122_lrg.jpg)). Dominio público.
+- **Torres del Paine (vista satelital, ISS006-E-41420)** — NASA ([archivo original](https://commons.wikimedia.org/wiki/File:Torres_del_Paine_NASA.jpg)). Dominio público.
+
+Las imágenes con licencia **CC BY-SA** se distribuyen **sin modificaciones**. Cualquier obra derivada de ellas (recorte, reescalado, edición) debe publicarse bajo la **misma licencia CC BY-SA** e incluir la atribución indicada.
 
 ## ✏️ Personalización
 
